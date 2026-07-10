@@ -1,0 +1,24 @@
+---
+- name: "Phase 2 : Déploiement de l'Infrastructure as Code"
+  hosts: localhost
+  connection: local
+  vars_files:
+    - ../vars/network.yml
+
+  tasks:
+
+    - name: "Étape 2.3 : Générer les configurations FRR"
+      template:
+        src: ../roles/frr/frr.conf.j2
+        dest: "{{ playbook_dir }}/../../infra/routers/{{ item.name }}/frr.conf"
+      loop:
+        - { hostname: "router-a", name: "router-a", as: "{{ as_hq }}", id: "1.1.1.1", peer_as: "{{ as_branch }}", peer_ip: "{{ router_b_wan_ip }}", prefix: "{{ net_a_prefix }}" }
+        - { hostname: "router-b", name: "router-b", as: "{{ as_branch }}", id: "2.2.2.2", peer_as: "{{ as_hq }}", peer_ip: "{{ router_a_wan_ip }}", prefix: "{{ net_b_prefix }}" }
+
+    - name: "Étape 2.4 : Lancer la topologie avec Docker Compose"
+      community.docker.docker_compose_v2:
+        project_src: "{{ playbook_dir }}/../../infra"
+        files:
+          - docker-compose.yml
+        state: present
+      register: compose_output

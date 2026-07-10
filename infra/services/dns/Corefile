@@ -1,0 +1,9 @@
+.:53 {
+    forward . 8.8.8.8 1.1.1.1
+    hosts {
+        10.10.1.10 web.infra.local
+        fallthrough
+    }
+    log
+    errors
+}

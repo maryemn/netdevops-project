@@ -1,0 +1,12 @@
+! Fichier généré automatiquement - Ne pas modifier à la main
+hostname {{ item.hostname }}
+password zebra
+
+router bgp {{ item.as }}
+ bgp router-id {{ item.id }}
+ network {{ item.prefix }}
+ neighbor {{ item.peer_ip }} remote-as {{ item.peer_as }}
+ neighbor {{ item.peer_ip }} description Peering BGP
+
+line vty
+!

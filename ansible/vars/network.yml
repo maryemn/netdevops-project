@@ -1,0 +1,9 @@
+# Source of Truth - Paramètres du réseau
+as_hq: 65003
+as_branch: 65002
+
+router_a_wan_ip: "172.20.0.5"
+router_b_wan_ip: "172.20.0.2"
+
+net_a_prefix: "10.0.1.0/24"
+net_b_prefix: "10.0.2.0/24"

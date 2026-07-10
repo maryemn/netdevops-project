@@ -1,0 +1,19 @@
+# Environnement virtuel Python
+venv/
+.venv/
+env/
+
+# Fichiers compilés
+__pycache__/
+*.pyc
+
+# Variables locales et secrets (sécurité)
+.env
+ansible/.ansible_cache
+
+# Dossiers d'outils
+.pytest_cache/
+.vscode/
+
+# OS
+.DS_Store

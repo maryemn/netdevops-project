@@ -1,0 +1,14 @@
+
+pytest==8.1.1          # Framework de test principal 
+pytest-html==4.1.1     # Génération de rapports HTML pour GitHub Actions 
+docker==7.0.0          # SDK Python pour interagir avec les conteneurs (Test infra) 
+# --- Automatisation & IaC ---
+ansible==9.3.0         # Coeur de l'automatisation de configuration 
+ansible-lint==24.2.0   # Analyse statique des playbooks (pour la partie Lint de la CI) 
+
+# --- Réseau & Manipulation de paquets ---
+scapy==2.5.0           # Manipulation avancée de paquets réseau 
+
+# --- Utilitaires ---
+Jinja2==3.1.3          # Moteur de templating pour générer les frr.conf 
+PyYAML==6.0.1          # Manipulation des fichiers de variables network.yml 
