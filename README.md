@@ -1,283 +1,245 @@
-# network-cicd-infra
-# 🌐 Network CI/CD Infrastructure
+# Network Automation Lab
 
-> Pipeline CI/CD complète pour une infrastructure réseau multi-sites automatisée —
-> topologie BGP/OSPF, tests réseau automatisés, déploiement reproductible en une commande.
+NetDevOps project implementing automated deployment, configuration, and testing of a containerized network infrastructure using Infrastructure as Code (IaC), CI/CD, and automated testing.
 
-[![CI](https://github.com/AhmedAboutahir/network-cicd-infra/actions/workflows/ci.yml/badge.svg)](https://github.com/AhmedAboutahir/network-cicd-infra/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)
-![FRRouting](https://img.shields.io/badge/Routing-FRRouting-orange)
-![GitHub Actions](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?logo=githubactions&logoColor=white)
-![Ansible](https://img.shields.io/badge/IaC-Ansible-EE0000?logo=ansible&logoColor=white)
-![Python](https://img.shields.io/badge/Tests-pytest-3776AB?logo=python&logoColor=white)
+![FRRouting](https://img.shields.io/badge/Networking-FRRouting-orange)
+![GitHub Actions](https://img.shields.io/badge/CI%2FCD-GitHub_Actions-2088FF?logo=githubactions&logoColor=white)
+![Ansible](https://img.shields.io/badge/Automation-Ansible-EE0000?logo=ansible&logoColor=white)
+![Python](https://img.shields.io/badge/Testing-pytest-3776AB?logo=python&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
----
+## Contents
 
-## 📋 Table des matières
+- [Overview](#overview)
+- [Architecture](#architecture)
+- [Tech stack](#tech-stack)
+- [Project structure](#project-structure)
+- [Installation](#installation)
+- [Running the infrastructure](#running-the-infrastructure)
+- [Ansible automation](#ansible-automation)
+- [CI/CD pipeline](#cicd-pipeline)
+- [Automated tests](#automated-tests)
+- [Roadmap](#roadmap)
+- [Contributing](#contributing)
+- [License](#license)
+- [Author](#author)
 
-- [Vue d'ensemble](#-vue-densemble)
-- [Architecture](#-architecture)
-- [Stack technologique](#-stack-technologique)
-- [Démarrage rapide](#-démarrage-rapide)
-- [Structure du projet](#-structure-du-projet)
-- [Pipeline CI/CD](#-pipeline-cicd)
-- [Tests automatisés](#-tests-automatisés)
-- [Roadmap](#-roadmap)
-- [Auteur](#-auteur)
+## Overview
 
----
+Network Automation Lab is a NetDevOps experimentation project that automates the deployment, configuration, and validation of a network infrastructure.
 
-## 🎯 Vue d'ensemble
+Goals:
 
-Ce projet reproduit une infrastructure réseau d'entreprise multi-sites entièrement pilotée par une pipeline CI/CD. Chaque modification du code (topologie, config routage, règles firewall) déclenche automatiquement des tests et un déploiement.
+- Manage infrastructure as code (IaC)
+- Automate network configuration
+- Validate changes through CI/CD pipelines
+- Run automated tests before deployment
 
-**Ce que fait ce projet :**
-- Simule deux sites distants interconnectés via BGP eBGP et OSPF
-- Déploie toute l'infrastructure en code (IaC) — reproductible en une seule commande
-- Exécute une suite de tests réseau automatisés (connectivité, routage, DNS, sécurité)
-- Génère un rapport de test HTML accessible depuis GitHub Actions
+The environment reproduces a multi-site network architecture with virtual routers, dynamic routing (OSPF/BGP), and a continuous integration chain.
 
-**Cas d'usage réel :** Ce projet reproduit ce que font des équipes NetDevOps avec des outils comme Batfish, NetBox ou AWX — mais avec une stack 100% open-source, accessible sur un laptop étudiant.
-
----
-
-## 🏗 Architecture
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        GitHub Repository                        │
-│                    (Source unique de vérité)                    │
-└──────────────────────────┬──────────────────────────────────────┘
-                           │ git push
-                           ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    GitHub Actions Pipeline                       │
-│   [lint] → [build] → [deploy topo] → [tests] → [rapport]       │
-└──────────────────────────┬──────────────────────────────────────┘
-                           │ docker compose up
-                           ▼
-┌──────────────────────────────────────────────────────────────────┐
-│                     Infrastructure Docker                        │
-│                                                                  │
-│  ┌─────────────────┐   172.20.0.0/27   ┌─────────────────┐     │
-│  │    Router-A      │◄─────────────────►│    Router-B      │     │
-│  │  AS 65001        │    WAN (Transit)   │  AS 65002        │     │
-│  │  OSPF + BGP      │                   │  OSPF + BGP      │     │
-│  └────────┬─────────┘                   └────────┬─────────┘     │
-│           │ 10.10.1.0/24                         │ 10.10.2.0/24  │
-│           ▼                                      ▼               │
-│      Site A (HQ)                           Site B (Branch)       │
-│                                                                  │
-│                   ┌──────────────────┐                          │
-│                   │  Services (DMZ)   │                          │
-│                   │  CoreDNS + Nginx  │                          │
-│                   └──────────────────┘                          │
-└──────────────────────────────────────────────────────────────────┘
-```
-
-| Couche | Composant | Technologie |
-|--------|-----------|-------------|
-| VCS / GitOps | Repository | GitHub |
-| CI/CD | Pipeline | GitHub Actions |
-| IaC Réseau | Topologie | Docker Compose + FRRouting |
-| IaC Config | Automatisation | Ansible |
-| Tests | Validation | pytest + docker SDK |
-| DNS / Web | Services | CoreDNS + Nginx |
-| Monitoring | Observabilité | Prometheus + Grafana |
-
----
-
-## 🛠 Stack technologique
-
-| Outil | Usage |
-|-------|-------|
-| **Docker / Compose** | Conteneurisation de toute l'infrastructure réseau |
-| **FRRouting** | Démon de routage open-source — BGP eBGP, OSPF |
-| **GitHub Actions** | Orchestration CI/CD — lint, build, test, deploy |
-| **Ansible** | Configuration automatisée post-déploiement |
-| **pytest + docker SDK** | Tests de connectivité, routage, DNS, sécurité |
-| **CoreDNS** | Résolution DNS interne |
-| **Nginx** | Serveur web de la DMZ |
-| **Prometheus + Grafana** | Monitoring des sessions BGP et métriques réseau |
-
----
-
-## 🚀 Démarrage rapide
-
-### Prérequis
-
-- Docker Engine 24+ et Docker Compose v2
-- Python 3.10+ avec pip
-- make (`sudo apt install make`)
-- Git
-
-### Installation
-
-```bash
-# 1. Cloner le repository
-git clone https://github.com/AhmedAboutahir/network-cicd-infra.git
-cd network-cicd-infra
-
-# 2. Installer les dépendances Python
-pip install -r requirements.txt
-
-# 3. Déployer l'infrastructure
-make up
-
-# 4. Lancer les tests
-make test
-
-# 5. Arrêter l'infrastructure
-make down
-```
-
-### Commandes disponibles
-
-```bash
-make up        # Démarrer toute l'infrastructure
-make down      # Arrêter et nettoyer
-make test      # Lancer la suite de tests réseau
-make lint      # Valider les fichiers YAML et configs
-make ansible   # Appliquer les playbooks Ansible
-```
-
-### Vérification manuelle
-
-```bash
-# Vérifier la connectivité WAN entre les deux routeurs
-docker exec router-a ping -c 3 172.20.0.2
-docker exec router-b ping -c 3 172.20.0.5
-
-# Vérifier les tables de routage
-docker exec router-a ip route show
-docker exec router-b vtysh -c 'show bgp summary'
-
-# Vérifier la résolution DNS
-docker exec host-a nslookup web.infra.local
-```
-
----
-
-## 📁 Structure du projet
+## Architecture
 
 ```
-network-cicd-infra/
+GitHub Repository
+        |
+        | git push
+        v
+GitHub Actions Pipeline
+        |
+   +----+----------+
+   |    |          |
+  Lint Build      Tests
+   |    |          |
+   +----+----------+
+        |
+        v
+Docker Network Environment
+
++---------------------------------------------+
+|                                               |
+|   Router A  (AS 65001)                       |
+|        |  OSPF + BGP                         |
+|        |                                     |
+|     WAN Transit                              |
+|        |                                     |
+|        |  OSPF + BGP                         |
+|   Router B  (AS 65002)                       |
+|                                               |
++---------------------------------------------+
+```
+
+## Tech stack
+
+| Area | Technologies |
+|---|---|
+| Containerization | Docker, Docker Compose |
+| Network routing | FRRouting, OSPF, BGP |
+| Automation | Ansible |
+| CI/CD | GitHub Actions |
+| Testing | Python, pytest |
+| Version control | Git, GitHub |
+| Monitoring (planned) | Prometheus, Grafana |
+
+## Project structure
+
+```
+network-automation-lab/
 ├── .github/
 │   └── workflows/
-│       ├── ci.yml          # Pipeline CI principale (lint + build + test)
-│       └── deploy.yml      # Pipeline de déploiement (manuel ou on merge)
+│       └── ci.yml                 # CI/CD pipeline
+│
 ├── infra/
-│   ├── docker-compose.yml  # Topologie réseau complète
+│   ├── docker-compose.yml         # Network topology
 │   └── routers/
-│       ├── router-a/       # Dockerfile + frr.conf (OSPF + BGP AS65001)
-│       └── router-b/       # Dockerfile + frr.conf (OSPF + BGP AS65002)
-│   └── services/
-│       ├── dns/            # CoreDNS + Corefile
-│       └── web/            # Nginx + index.html
+│       ├── router-a/              # Router A configuration
+│       └── router-b/              # Router B configuration
+│
 ├── ansible/
-│   ├── inventory.yml       # Inventaire des containers
-│   └── playbooks/          # deploy-infra.yml, configure-services.yml
+│   ├── inventory.yml              # Network inventory
+│   └── playbooks/                 # Configuration automation
+│
 ├── tests/
-│   ├── conftest.py         # Fixtures pytest
-│   ├── test_connectivity.py # Tests ping inter-sites
-│   ├── test_routing.py     # Tests BGP/OSPF
-│   ├── test_services.py    # Tests DNS + HTTP
-│   └── test_security.py    # Tests règles firewall
+│   └── test_network.py            # Automated tests
+│
 ├── monitoring/
-│   ├── prometheus.yml
-│   └── grafana/dashboards/
+│   └── prometheus/                # Monitoring (planned)
+│
 ├── docs/
-│   ├── architecture.md
-│   └── runbook.md
-├── scripts/
-│   ├── setup.sh
-│   └── run-tests.sh
-├── Makefile
+│   └── architecture.md            # Technical documentation
+│
 ├── requirements.txt
 └── README.md
 ```
 
----
+## Installation
 
-## ⚙️ Pipeline CI/CD
+### Requirements
 
-La pipeline se déclenche automatiquement sur chaque `push` vers `main` ou `develop` et sur chaque Pull Request.
+- Docker Engine
+- Docker Compose
+- Python 3.10+
+- Ansible
+- Git
+
+### Clone the repository
+
+```bash
+git clone https://github.com/maryemn/network-automation-lab.git
+cd network-automation-lab
+```
+
+### Install Python dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+## Running the infrastructure
+
+Start the network environment:
+
+```bash
+docker compose up -d
+```
+
+Check running containers:
+
+```bash
+docker ps
+```
+
+Stop the environment:
+
+```bash
+docker compose down
+```
+
+## Ansible automation
+
+Ansible playbooks automate network configuration (interfaces, routing protocols, BGP policies, etc.).
+
+Example run:
+
+```bash
+ansible-playbook -i ansible/inventory.yml ansible/playbooks/deploy.yml
+```
+
+## CI/CD pipeline
+
+On every push, the GitHub Actions pipeline runs automatically:
 
 ```
 git push
-    │
-    ▼
-┌─────────┐    ┌─────────┐    ┌──────────────┐    ┌────────┐    ┌──────────┐
-│  LINT   │───►│  BUILD  │───►│    DEPLOY    │───►│  TEST  │───►│  REPORT  │
-│  YAML   │    │ Docker  │    │ docker-compose│    │ pytest │    │ Artifact │
-│hadolint │    │ images  │    │    up -d     │    │ réseau │    │  GitHub  │
-└─────────┘    └─────────┘    └──────────────┘    └────────┘    └──────────┘
-                                                                      │
-                                                               always: make down
+   |
+   v
+GitHub Actions
+   |
+   +-- Lint   -> YAML file validation
+   +-- Build  -> Docker build verification
+   +-- Tests  -> deployment + network tests
+   |
+   v
+Final validation
 ```
 
-| Étape | Description |
-|-------|-------------|
-| **Lint** | Validation YAML (yamllint), Dockerfile (hadolint), configs réseau |
-| **Build** | `docker compose build` — détecte les erreurs de build |
-| **Deploy** | `docker compose up -d` + attente convergence BGP (30s) |
-| **Test** | `pytest tests/` — suite réseau complète, rapport HTML généré |
-| **Report** | Upload artifact GitHub — rapport accessible dans l'onglet Actions |
-| **Teardown** | `docker compose down --volumes` — nettoyage systématique (`if: always()`) |
+Checks performed:
 
----
+- YAML file validation
+- Docker build verification
+- Test environment deployment
+- Automated network test execution
 
-## 🧪 Tests automatisés
+## Automated tests
 
-La suite de tests valide chaque couche de l'infrastructure :
+Tests validate:
 
-| Fichier | Couverture | Outils |
-|---------|-----------|--------|
-| `test_connectivity.py` | Ping inter-sites, latence < 5ms, perte de paquets | subprocess, docker SDK |
-| `test_routing.py` | BGP Established, OSPF neighbors, tables de routes | vtysh via docker exec |
-| `test_services.py` | DNS nslookup, HTTP 200, résolution interne | requests, subprocess |
-| `test_security.py` | Ports fermés, règles iptables, trafic interdit rejeté | scapy, subprocess |
-| `test_failover.py` | Convergence BGP < 30s après panne d'un routeur | docker stop, pytest |
+- Connectivity between devices
+- Dynamic routing state (OSPF/BGP)
+- Network service availability
+- Configuration consistency
 
-Exemple d'exécution :
+### Run
 
 ```bash
-$ make test
-
-tests/test_connectivity.py::TestConnectivity::test_site_a_to_wan       PASSED
-tests/test_connectivity.py::TestConnectivity::test_site_a_to_site_b    PASSED
-tests/test_connectivity.py::TestConnectivity::test_latency_acceptable  PASSED
-tests/test_routing.py::TestRouting::test_bgp_established               PASSED
-tests/test_routing.py::TestRouting::test_ospf_neighbors                PASSED
-tests/test_services.py::TestServices::test_dns_resolution              PASSED
-tests/test_services.py::TestServices::test_http_200                    PASSED
-
-7 passed in 12.4s — rapport HTML généré dans reports/
+pytest tests/
 ```
 
----
+### Example output
 
-## 🗺 Roadmap
+```
+tests/test_connectivity.py  PASSED
+tests/test_routing.py       PASSED
+tests/test_services.py      PASSED
+```
 
-| Phase | Description | Statut |
-|-------|-------------|--------|
-| **Phase 1** | Fondations — Docker, FRRouting, topologie WAN, connectivité de base | ✅ En cours |
-| **Phase 2** | IaC complète — BGP eBGP, CoreDNS, Nginx, Ansible, variables centralisées | 🔜 À venir |
-| **Phase 3** | Pipeline CI/CD — GitHub Actions, lint, build, deploy, rapport de test | 🔜 À venir |
-| **Phase 4** | Tests automatisés — connectivité, routage, DNS, sécurité, failover | 🔜 À venir |
-| **Phase 5** | Finalisation — README pro, runbook, démo GIF, documentation technique | 🔜 À venir |
-| **Bonus** | Monitoring Prometheus/Grafana, Trivy image scanning, Terraform | ⏳ Optionnel |
+## Roadmap
 
----
+| Feature | Status |
+|---|---|
+| Docker network environment | Done |
+| Dynamic routing (OSPF/BGP) | In progress |
+| Ansible automation | In progress |
+| GitHub Actions pipeline | In progress |
+| Automated network tests | Planned |
+| Prometheus/Grafana monitoring | Planned |
+| Cloud deployment | Planned |
 
-## 👤 Auteur
+## Contributing
 
-**Ahmed Aboutahir**
-Étudiant ingénieur — Réseaux & DevOps
+1. Fork the repository
+2. Create a branch (`git checkout -b feature/my-feature`)
+3. Commit your changes (`git commit -m 'Add my feature'`)
+4. Push the branch (`git push origin feature/my-feature`)
+5. Open a pull request
 
-[![GitHub](https://img.shields.io/badge/GitHub-AhmedAboutahir-181717?logo=github)](https://github.com/AhmedAboutahir)
+## License
 
----
+This project is distributed under the MIT License. See the `LICENSE` file for details.
 
-> *Ce projet est conçu pour démontrer des compétences NetDevOps concrètes : IaC, CI/CD, tests réseau automatisés, routage dynamique BGP/OSPF — reproductible en une commande sur n'importe quelle machine.*
+## Author
+
+**Maryem Nasseur**
+Engineering student — Networks & DevOps
+
+GitHub: [@maryemn](https://github.com/maryemn)
