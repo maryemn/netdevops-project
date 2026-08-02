@@ -4,9 +4,14 @@ password zebra
 
 router bgp {{ item.as }}
  bgp router-id {{ item.id }}
- network {{ item.prefix }}
+ no bgp ebgp-requires-policy
  neighbor {{ item.peer_ip }} remote-as {{ item.peer_as }}
  neighbor {{ item.peer_ip }} description Peering BGP
+
+ address-family ipv4 unicast
+  network {{ item.prefix }}
+  neighbor {{ item.peer_ip }} activate
+ exit-address-family
 
 line vty
 !
