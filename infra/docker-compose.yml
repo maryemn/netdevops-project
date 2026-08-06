@@ -1,6 +1,5 @@
-version: "3.8"
-
 services:
+
   router-a:
     build: ./routers/router-a
     container_name: router-a
@@ -41,12 +40,15 @@ services:
       - ./routers/router-b/frr.conf:/etc/frr/frr.conf
       - ./routers/router-b/daemons:/etc/frr/daemons
 
+
+
   web:
     image: nginx:alpine
     container_name: web
     networks:
       net-a:
         ipv4_address: 10.10.1.10
+
 
   dns:
     image: coredns/coredns:latest
@@ -58,17 +60,41 @@ services:
       net-a:
         ipv4_address: 10.10.1.53
 
+
   host-a:
     image: alpine
     container_name: host-a
-    command: ["sh", "-c", "sleep infinity"]
+    command:
+      - sh
+      - -c
+      - |
+        ip route del default
+        ip route add default via 10.10.1.4
+        sleep infinity
+    cap_add:
+      - NET_ADMIN
     networks:
       net-a:
         ipv4_address: 10.10.1.100
-    dns:
-      - 10.10.1.53
+  host-b:
+    image: alpine
+    container_name: host-b
+    command:
+      - sh
+      - -c
+      - |
+        ip route del default
+        ip route add default via 10.10.2.2
+        sleep infinity
+    cap_add:
+      - NET_ADMIN
+    networks:
+      net-b:
+        ipv4_address: 10.10.2.100
+
 
 networks:
+
   net-a:
     driver: bridge
     driver_opts:

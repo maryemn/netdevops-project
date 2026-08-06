@@ -2,23 +2,36 @@
 - name: "Phase 2 : Déploiement de l'Infrastructure as Code"
   hosts: localhost
   connection: local
+  gather_facts: false
   vars_files:
     - ../vars/network.yml
-
   tasks:
+    - name: "Étape 2.1 : Générer docker-compose.yml"
+      template:
+        src: ../templates/docker-compose.yml.j2
+        dest: "{{ playbook_dir }}/../../infra/docker-compose.yml"
+      become: false
 
-    - name: "Étape 2.3 : Générer les configurations FRR"
+    - name: "Étape 2.2 : Générer les configurations FRR"
       template:
         src: ../roles/frr/frr.conf.j2
         dest: "{{ playbook_dir }}/../../infra/routers/{{ item.name }}/frr.conf"
-      loop:
-        - { hostname: "router-a", name: "router-a", as: "{{ as_hq }}", id: "1.1.1.1", peer_as: "{{ as_branch }}", peer_ip: "{{ router_b_wan_ip }}", prefix: "{{ net_a_prefix }}" }
-        - { hostname: "router-b", name: "router-b", as: "{{ as_branch }}", id: "2.2.2.2", peer_as: "{{ as_hq }}", peer_ip: "{{ router_a_wan_ip }}", prefix: "{{ net_b_prefix }}" }
+      loop: "{{ routers }}"
+      become: false
 
-    - name: "Étape 2.4 : Lancer la topologie avec Docker Compose"
+    - name: "Étape 2.3 : Nettoyer les règles iptables raw résiduelles"
+      become: true
+      ansible.builtin.command: iptables -t raw -F
+      changed_when: true
+
+    - name: "Étape 2.4 : Déployer la topologie Docker Compose"
       community.docker.docker_compose_v2:
         project_src: "{{ playbook_dir }}/../../infra"
         files:
           - docker-compose.yml
         state: present
       register: compose_output
+
+    - name: "Afficher le résultat du déploiement"
+      debug:
+        var: compose_output

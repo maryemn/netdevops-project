@@ -1,0 +1,80 @@
+services:
+
+{% for router in routers %}
+  {{ router.name }}:
+    build: ./routers/{{ router.name }}
+    container_name: {{ router.name }}
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN
+    privileged: true
+    sysctls:
+      net.ipv4.ip_forward: 1
+      net.ipv4.conf.all.rp_filter: 0
+      net.ipv4.conf.default.rp_filter: 0
+    networks:
+      {{ router.lan_network }}:
+        ipv4_address: {{ router.lan_ip }}
+      wan:
+        ipv4_address: {{ router.wan_ip }}
+    volumes:
+      - ./routers/{{ router.name }}/frr.conf:/etc/frr/frr.conf
+      - ./routers/{{ router.name }}/daemons:/etc/frr/daemons
+
+{% endfor %}
+
+  web:
+    image: nginx:alpine
+    container_name: web
+    networks:
+      net-a:
+        ipv4_address: {{ services[0].ip }}
+
+  dns:
+    image: coredns/coredns:latest
+    container_name: dns
+    command: -conf /etc/coredns/Corefile
+    volumes:
+      - ./services/dns/Corefile:/etc/coredns/Corefile:ro
+    networks:
+      net-a:
+        ipv4_address: {{ services[1].ip }}
+
+{% for host in hosts %}
+  {{ host.name }}:
+    image: alpine
+    container_name: {{ host.name }}
+    command: ["sh", "-c", "sleep infinity"]
+    cap_add:
+      - NET_ADMIN
+    networks:
+      {{ host.network }}:
+        ipv4_address: {{ host.ip }}
+{% endfor %}
+
+
+networks:
+
+  net-a:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.enable_icc: "true"
+    ipam:
+      config:
+        - subnet: {{ net_a_prefix }}
+
+  net-b:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.enable_icc: "true"
+    ipam:
+      config:
+        - subnet: {{ net_b_prefix }}
+
+  wan:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.enable_icc: "true"
+    ipam:
+      config:
+        - subnet: {{ wan_prefix }}
