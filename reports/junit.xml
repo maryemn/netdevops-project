@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="8" time="12.949" timestamp="2026-08-07T14:27:10.121359" hostname="HP"><testcase classname="tests.test_connectivity" name="test_ping_cross_lan" time="8.231" /><testcase classname="tests.test_connectivity" name="test_ping_wan_link" time="4.173" /><testcase classname="tests.test_routing" name="test_bgp_session_established" time="0.158" /><testcase classname="tests.test_routing" name="test_bgp_route_learned" time="0.130" /><testcase classname="tests.test_security" name="test_no_stale_iptables_raw_rules" time="0.033"><failure message="AssertionError: Des règles iptables 'raw' résiduelles ont été détectées, elles peuvent bloquer le trafic (BGP notamment) :&#10;  ['DROP       0    --  0.0.0.0/0            10.10.1.10          ', 'DROP       0    --  0.0.0.0/0            10.10.2.100         ', 'DROP       0    --  0.0.0.0/0            10.10.1.53          ', 'DROP       0    --  0.0.0.0/0            10.10.1.100         ', 'DROP       0    --  0.0.0.0/0            10.10.1.4           ', 'DROP       0    --  0.0.0.0/0            10.10.2.2           ', 'DROP       0    --  0.0.0.0/0            172.20.0.5          ', 'DROP       0    --  0.0.0.0/0            172.20.0.2          ']&#10;assert not ['DROP       0    --  0.0.0.0/0            10.10.1.10          ', 'DROP       0    --  0.0.0.0/0            10.10.2.10...  --  0.0.0.0/0            10.10.1.4           ', 'DROP       0    --  0.0.0.0/0            10.10.2.2           ', ...]">def test_no_stale_iptables_raw_rules():
+        result = subprocess.run(
+            ["sudo", "iptables", "-t", "raw", "-L", "-n"],
+            capture_output=True,
+            text=True,
+        )
+        # On s'attend à seulement les chaînes par défaut (PREROUTING, OUTPUT),
+        # sans règle DROP/NOTRACK résiduelle qui bloquerait le trafic BGP.
+        suspicious_lines = [
+            line for line in result.stdout.splitlines()
+            if line and not line.startswith("Chain") and not line.startswith("target")
+        ]
+&gt;       assert not suspicious_lines, (
+            f"Des règles iptables 'raw' résiduelles ont été détectées, "
+            f"elles peuvent bloquer le trafic (BGP notamment) :\n"
+            f"{suspicious_lines}"
+        )
+E       AssertionError: Des règles iptables 'raw' résiduelles ont été détectées, elles peuvent bloquer le trafic (BGP notamment) :
+E         ['DROP       0    --  0.0.0.0/0            10.10.1.10          ', 'DROP       0    --  0.0.0.0/0            10.10.2.100         ', 'DROP       0    --  0.0.0.0/0            10.10.1.53          ', 'DROP       0    --  0.0.0.0/0            10.10.1.100         ', 'DROP       0    --  0.0.0.0/0            10.10.1.4           ', 'DROP       0    --  0.0.0.0/0            10.10.2.2           ', 'DROP       0    --  0.0.0.0/0            172.20.0.5          ', 'DROP       0    --  0.0.0.0/0            172.20.0.2          ']
+E       assert not ['DROP       0    --  0.0.0.0/0            10.10.1.10          ', 'DROP       0    --  0.0.0.0/0            10.10.2.10...  --  0.0.0.0/0            10.10.1.4           ', 'DROP       0    --  0.0.0.0/0            10.10.2.2           ', ...]
+
+tests/test_security.py:19: AssertionError</failure></testcase><testcase classname="tests.test_services" name="test_all_expected_containers_running" time="0.016" /><testcase classname="tests.test_services" name="test_internal_dns_resolution" time="0.081" /><testcase classname="tests.test_services" name="test_external_dns_forward" time="0.081" /></testsuite></testsuites>
